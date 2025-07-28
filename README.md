@@ -1,106 +1,108 @@
-**Round 1B Submission – Adobe India Hackathon 2025**  
-Built by:  
+# Persona-Driven Document Intelligence (Offline)
+
+**Adobe India Hackathon 2025 – Round 1B Submission**
+
+Built by:
 - ✨ Divya — [ddivya_be23@thapar.edu]  
-- ✨ Harman Preet Singh — [hsingh6_be23@thapar.edu]  
+- ✨ Harman Preet Singh — [hsingh6_be23@thapar.edu]
 
 ---
 
-## 🚀 Overview
+## 🚀 Project Overview
 
-This solution extracts task-relevant information from multi-page documents based on a `persona.json` configuration file. It scores each section of the document using semantic similarity to the persona’s goals and ranks them accordingly.
+This solution processes multi-page documents to extract and rank content **most relevant to a persona’s goals**. Given a `persona.json` and one or more documents, the system outputs ranked sections based on semantic similarity to the persona’s objective.
 
-> 💡 Everything runs **fully offline**, including model inference and dependencies — suitable for air-gapped or secure environments.
-
----
-
-## 🧠 Features
-
-- ✅ Supports **multilingual documents**
-- ✅ Uses **offline language models**
-- ✅ Accepts `.pdf`, `.txt`, `.docx` documents
-- ✅ Outputs ranked JSON for top relevant sections
-- ✅ Fast runtime (~2–5 sec for 50 pages)
+Everything runs **completely offline** — all models and dependencies are included in the container for use in secure, air-gapped environments.
 
 ---
 
-## 🏗️ Folder Structure
+## ✅ Features
 
-```
-project/
+- Multilingual document support (English, Hindi, etc.)
+- Fast: ~2–5 sec per 50-page PDF
+- Supports `.pdf`, `.txt`, `.docx`
+- Offline transformer model
+- Output saved per file as `<filename>.json`
+- Fully Dockerized with local wheels
+
+---
+
+## 🏗️ Project Structure
+
+Round1b/
 ├── app/
-│   ├── input/                ← Drop input documents here
-│   ├── output/               ← Extracted + ranked content (JSON)
-│   ├── model/                ← Offline transformer model (downloaded)
-│   ├── main.py               ← Main code for processing + ranking
-│   └── persona.json          ← Persona config file
-├── wheels/                   ← Offline `.whl` packages
-├── requirements.txt          ← Python dependency list
-├── Dockerfile                ← Offline Docker config
-├── download_model.py         ← Optional: model download script
-├── README.md                 ← You are here
-```
+│ ├── input/ # Drop input PDFs here
+│ ├── output/ # Output JSONs go here
+│ ├── model/ # Pre-downloaded transformer model
+│ ├── main.py # Entry-point script
+│ └── persona.json # Persona configuration
+├── wheels/ # All offline Python dependencies
+├── requirements.txt # List of Python packages
+├── Dockerfile # Builds offline container
+├── download_model.py # One-time model download
+├── README.md # This file
+├── approach_explanation.md # Methodology explained
+
+yaml
 
 ---
 
-## 🔧 Requirements
+## 📦 persona.json Format
 
-- Docker Desktop with WSL2 backend (Windows/Linux)
-- Python 3.10+ (if running without Docker)
+```json
+{
+  "persona": "HR Manager at Adobe",
+  "goal": "Streamline employee onboarding using AI"
+}
+🔧 Requirements
+Docker Desktop (WSL2 for Windows)
 
----
+~600MB disk space
 
-## 🔌 Offline Setup Instructions
+🛠️ Build Docker Image
 
-### 1. ✅ Download Dependencies
+docker build --platform linux/amd64 -t persona-sidhu:securev1 .
 
-Use the following command (already done):
+▶️ Run Your Solution
 
-```bash
-pip download -d wheels -r requirements.txt
-```
+bash
 
----
+docker run --rm \
+  -v $(pwd)/app/input:/app/input \
+  -v $(pwd)/app/output:/app/output \
+  --network none \
+  persona-sidhu:securev1
+The container will:
 
-### 2. ✅ Build Docker Image
+Read all .pdf files in /app/input
 
-```powershell
-docker build -t persona-offline .
-```
+Process and extract relevant sections
 
----
+Save results as /app/output/<filename>.json
 
-### 3. ✅ Run the Container
+🧪 Run Without Docker
+Only for local testing (optional):
 
-```powershell
-docker run --rm `
-  -v "${PWD}\app\input:/app/input" `
-  -v "${PWD}\app\output:/app/output" `
-  -v "${PWD}\app\persona.json:/app/persona.json" `
-  -v "${PWD}\app\model:/app/model" `
-  persona-offline
-```
+bash
 
----
-
-## 🧪 Run Without Docker (For Testing)
-
-```bash
 pip install --no-index --find-links=wheels -r requirements.txt
 python app/main.py
-```
+🧠 How It Works
+Load persona from persona.json
 
----
+Split each input document into sections (pages or headings)
 
-## 📦 Output Format
+Embed each section + persona using sentence-transformers/all-MiniLM-L6-v2
 
-The output file will be generated at:
+Rank sections by cosine similarity
 
-```
-app/output/ranked_output.json
-```
+Output top-ranked content as JSON
 
-Example:
-```json
+📝 Output Format
+Each input file (sample.pdf) generates an output like:
+
+json
+
 [
   {
     "section_title": "Introduction to AI in HR",
@@ -108,36 +110,10 @@ Example:
     "content": "AI enables faster onboarding and improves efficiency..."
   }
 ]
-```
 
----
+👥 Team Credits
+Divya — [ddivya_be23@thapar.edu]
 
-## 🧠 How It Works
+Harman Preet Singh — [hsingh6_be23@thapar.edu]
 
-1. `main.py` loads the persona objective from `persona.json`
-2. The document is broken into sections and vectorized using a sentence-transformer model
-3. Each section is scored by cosine similarity to the persona vector
-4. Ranked output is stored in `output/`
-
----
-
-## 📥 Persona Config Format
-
-`app/persona.json` should follow this structure:
-
-```json
-{
-  "persona": "HR Manager at Adobe",
-  "goal": "Improve onboarding efficiency using AI tools"
-}
-```
-
----
-
-## 📚 Credits
-
-- **Team:** Divya & Harman Preet Singh    
-- **Challenge:** Adobe India Hackathon 2025 – Round 1B
-
----
-
+Challenge: Adobe India Hackathon 2025 – Round 1B
